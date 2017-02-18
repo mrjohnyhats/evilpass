@@ -1,3 +1,5 @@
+# -*- coding: utf8 -*-
+
 import requests
 import string
 from bs4 import BeautifulSoup
@@ -96,6 +98,11 @@ def _check_hn(username, email, pw):
     }, allow_redirects=False)
     return r.status_code == 200 # Redirects on success
 
+def search_plist(pw):
+    #checks a small password list to see if pw is easy to crack
+    with open('plist.txt') as plist:
+        return (pw+'\n') in plist
+
 checks = {
     "Twitter": _check_twitter,
     "Facebook": _check_fb,
@@ -109,7 +116,9 @@ def check_pass(pw, email, username):
     # benign part
     if len(pw) < 8:
         errors.append("Your password must be at least 8 characters long")
-    upper = False, lower = False, number = False
+    upper = False
+    lower = False
+    number = False
     for c in pw:
         if c in string.ascii_lowercase:
             lower = True
@@ -121,6 +130,10 @@ def check_pass(pw, email, username):
         errors.append("Your password must contain at least one uppercase letter, one lowercase letter, and one number")
     if pw.lower() == email.lower() or pw.lower() == username.lower():
         errors.append("Your password must not be the same as your username or email address")
+
+    if search_plist(pw):
+        errors.append("Your password must not be seen early in a small password list")
+
     # evil part
     if not username:
         username = email
